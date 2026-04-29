@@ -19,8 +19,8 @@ static uint8_t         rgb_values[SZ_RGB_ARRAY];
 static const float     rgb_balance[SZ_RGB_ARRAY] = {0.5, 0.9, 1.0};
 
 /* CONFIG WIFI */
-static const char *ssid          = "MOVISTAR_D005";
-static const char *password      = "vF2qJsNSrtGRzV8pd4La";
+static const char *ssid          = "*";
+static const char *password      = "*";
 
 /* CONFIG MQTT BROKER */
 static const char   *mqtt_broker   = "broker.emqx.io";
