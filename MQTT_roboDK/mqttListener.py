@@ -1,6 +1,5 @@
 # Script de python para MQTT
 
-import json
 import paho.mqtt.client as mqtt
 import RobotController  as rc
 
@@ -17,23 +16,11 @@ topic_pub   = "emqx/ESP32_R/pub"
 # Posted by Alex
 # Retrieved 2026-04-27, License - CC BY-SA 3.0
 
-class Payload(object):
-    def __init__(self, rgb_hex, tamano, cantidad, tipo):
-        self.rgb_hex = rgb_hex
-        self.tamano = tamano
-        self.cantidad = cantidad
-        self.tipo = tipo
-
-def as_payload(dct):
-    return Payload(dct['rgb_hex'], dct['tamano'], dct['cantidad'], dct['tipo'])
 # Callback
 def on_message(mqttc, obj, msg):
     payload = msg.payload.decode('utf-8')
     topic = msg.topic
     qos = msg.qos
-    desJson = json.loads(payload, object_hook = as_payload)
-    message_to_pub = f"Cod: {desJson.rgb_hex}, Sz: {desJson.tamano}, q: {desJson.cantidad}, type: {desJson. tipo}"
-    mqttc.publish(topic_pub, message_to_pub)
     rc.handle_message(mqttc, topic, payload) # for the movement of the robot
 
 
