@@ -27,7 +27,7 @@ def handle_message(mqttc, topic, payload):
         desJson = json.loads(payload, object_hook = as_payload)
         message_to_pub = f"Cod: {desJson.rgb_hex}, Sz: {desJson.tamano}, q: {desJson.cantidad}, type: {desJson. tipo}"
         mqttc.publish(topic_pub, message_to_pub)
-        MoveCinta.move_cinta(desJson.cantidad, desJson.rgb_hex)
+        MoveCinta.move_cinta(desJson.rgb_hex, desJson.cantidad, desJson.tipo)
 
 # ------- FUNCIONES DE PICK & PLACE ----------------
 
