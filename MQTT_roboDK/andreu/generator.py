@@ -13,7 +13,7 @@ RDK = robolink.Robolink()
 import init
 
 import json
-import mqtt_client as mqtt
+# import mqtt_client as mqtt # Por ahora es opcional
 import threading
 
 from queue import Empty
@@ -53,12 +53,12 @@ def handle_message(mqttc, topic, payload):
 
  # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
 def generar_b_int():
-    while True:
+    while init.running:
         bote = init.cola_productos_int.get() # Espera a que desencolar_int le mande trabajo
 
         tamano = bote.get("tamano")
         bote_obj = RDK.Item(f"Bote_{tamano}L")
-        tapa_obj = RDK.Item(f"Tapa_{tamano}")
+        tapa_obj = RDK.Item(f"Tapa_{tamano}L")
 
         # --TODO: Terminar el proceso de generacion de botes de la linea interior -----------------------------------------------------
 
@@ -94,7 +94,7 @@ def generar_b_int():
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def generar_b_ext():
-    while True:
+    while init.running:
         bote = init.cola_productos_ext.get() # Espera a que desencolar_ext le mande trabajo
         tamano = bote.get("tamano")
         bote_obj = RDK.Item(f"Bote_{tamano}L")
@@ -137,7 +137,7 @@ def encolar_procesados_ext(bote:dict, cantidad: int):
             init.cola_productos_ext.put(bote.copy())
 
 def desencolar_int():
-    while True:
+    while init.running:
         if not init.cola_per_int.empty():
             data = init.cola_per_int.get()
         else:
@@ -147,7 +147,7 @@ def desencolar_int():
         encolar_procesados_int(data, cantidad) # Se encolan los productos procesados para que el hilo de generación los copie y los coloque en la cinta transportadora
 
 def desencolar_ext():
-    while True:
+    while init.running:
         if not init.cola_per_ext.empty():
             data = init.cola_per_ext.get()
         else:
@@ -158,7 +158,7 @@ def desencolar_ext():
         
 
 def actual_cinta_int():
-    while True:
+    while init.running:
         bote_en_camino = init.cola_actual_int.get()
 
         with init.actual_int_lock:
@@ -169,7 +169,7 @@ def actual_cinta_int():
         init.bote_procesado_int.clear() # Se limpia el evento para que el hilo pueda volver a esperar por el siguiente producto a procesar
 
 def actual_cinta_ext():
-    while True:
+    while init.running:
         bote_en_camino = init.cola_actual_ext.get()
 
         with init.actual_ext_lock:
@@ -180,7 +180,7 @@ def actual_cinta_ext():
         init.bote_procesado_ext.clear() # Se limpia el evento para que el hilo pueda volver a esperar por el siguiente producto a procesar
 
 def generator_gen():
-    while True:
+    while init.running:
         numero_tamaño = random.randint(0, 2)
         numero_linea = random.randint(0, 1)
         tamano = ["Pequeño", "Mediano", "Grande"][numero_tamaño]
@@ -206,7 +206,7 @@ threading.Thread(target=generar_b_int, daemon=True).start()
 threading.Thread(target=generar_b_ext, daemon=True).start()
 
 try:
-    while True:
+    while init.running:
         time.sleep(1)
         
 except KeyboardInterrupt:
