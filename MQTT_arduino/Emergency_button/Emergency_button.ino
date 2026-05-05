@@ -19,8 +19,8 @@ static uint8_t         rgb_values[SZ_RGB_ARRAY];
 static const float     rgb_balance[SZ_RGB_ARRAY] = {0.5, 0.9, 1.0};
 
 /* CONFIG WIFI */
-static const char *ssid          = "*";
-static const char *password      = "*";
+static const char *ssid          = "MOVISTAR_D005";
+static const char *password      = "vF2qJsNSrtGRzV8pd4La";
 
 /* CONFIG MQTT BROKER */
 static const char   *mqtt_broker   = "broker.emqx.io";
@@ -156,13 +156,12 @@ void callback(char *topic, byte *payload, unsigned int length)
   rgb_str = doc["rgb_hex"] | "000000"; 
   sz_str = doc["tamano"] | "N";
   quantity = doc["cantidad"];
-  type = doc["tipo"];
 
   sz_ch = sz_str[0];
   long rgb_hex_send = strtol(rgb_str, NULL, 16);
   xQueueSend(xCallback_rgb_queue, &rgb_hex_send, 0);
   
-  Serial.printf("rgb: %06x; sz: %c; Q: %d\n; Type: %s", rgb_hex_send, sz_ch, quantity, type);
+  Serial.printf("rgb: %06x; sz: %c; Q: %d\n", rgb_hex_send, sz_ch, quantity);
   Serial.println("-----------------------");
 
 }
