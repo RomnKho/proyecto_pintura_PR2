@@ -7,6 +7,7 @@ from robodk.robolink import *
 import paho.mqtt.client as mqtt
 import RobotController  as rc
 import Init
+import MoveCinta as mc
 
 broker_dsic  = "mqtt.dsic.upv.es"
 free_broker  = "broker.emqx.io"
@@ -36,10 +37,10 @@ mqttc.subscribe(topic_sub, 0)
 mqttc.subscribe(topic_button, 0)
 
 # Crear los threads
-hilo_cintas = threading.Thread(target = rc.mueve_cinta)
-hilo_generar_botes_interior = threading.Thread(target = rc.generar_bote_interior)
-hilo_generar_botes_exterior = threading.Thread(target = rc.generar_bote_exterior)
-hilo_pintar_botes = threading.Thread(target = rc.pintar_bote_interior)
+hilo_cintas = threading.Thread(target = mc.mueve_cinta)
+hilo_generar_botes_interior = threading.Thread(target = mc.generar_bote_interior)
+hilo_generar_botes_exterior = threading.Thread(target = mc.generar_bote_exterior)
+hilo_pintar_botes = threading.Thread(target = mc.pintar_bote_interior)
 
 # Hacer que empiecen los threads
 hilo_cintas.start()

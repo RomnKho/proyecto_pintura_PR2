@@ -13,3 +13,7 @@ cola_bote_pintura_exterior = Queue()
 # Colas con el bote a pintar
 cola_bote_a_pintar_interior = Queue()
 cola_bote_a_pintar_exterior = Queue()
+
+# Cola con los colores a pintar
+cola_colores_interior = Queue()
+cola_colores_exterior = Queue()
