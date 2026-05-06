@@ -21,8 +21,8 @@ static uint8_t         rgb_values[SZ_RGB_ARRAY];
 static const gpio_num_t   button_pin     = GPIO_NUM_4;
 
 /* CONFIG WIFI */
-static const char *ssid          = "*";
-static const char *password      = "*";
+static const char *ssid          = "DIGIFIBRA-ZsPz";
+static const char *password      = "K9299Rdy2dGC";
 
 /* CONFIG MQTT BROKER */
 static const char   *mqtt_broker   = "broker.emqx.io";
