@@ -30,7 +30,7 @@ static const char   *topic_button  = "emqx/ESP32_R/arduino/button";
 static const char   *topic_led     = "emqx/ESP32_R/roboDK/led";
 static const char   *mqtt_username = "emqx";
 static const char   *mqtt_password = "public";
-static const int    mqtt_port     = 1883;
+static const int    mqtt_port      = 1883;
 static String       client_id;
 
 static WiFiClient espClient;
@@ -41,10 +41,6 @@ static const int16_t      BUTTON_TASK_DELAY        = 50;
 static const int8_t       BUTTON_TASK_PRIORITY     = 3;
 static const int16_t      BUTTON_TASK_STACK_SZ     = 2048;
 static TaskHandle_t       button_task_handle       = NULL;
-
-/* QUEUE */
-static QueueHandle_t    xCallback_rgb_queue   = NULL;
-static const int8_t     CALLBACK_RGB_QUEUE_SZ = 10;
 
 /* FUNCTIONS */
 void callback  (char *topic, byte *payload, unsigned int length);
