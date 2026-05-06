@@ -15,14 +15,14 @@ static const uint32_t     FREQ          = 1000;
 static const uint8_t      RESOLUTION    = 8;
 static const uint8_t      CHANNELS[]    = {0, 1, 2};
 
-static uint8_t         rgb_values[SZ_RGB_ARRAY];
+static uint8_t            rgb_values[SZ_RGB_ARRAY];
 
 /* BUTTON */
 static const gpio_num_t   button_pin     = GPIO_NUM_4;
 
 /* CONFIG WIFI */
-static const char *ssid          = "*";
-static const char *password      = "*";
+static const char *ssid          = "DIGIFIBRA-ZsPz";
+static const char *password      = "K9299Rdy2dGC";
 
 /* CONFIG MQTT BROKER */
 static const char   *mqtt_broker   = "broker.emqx.io";
@@ -39,7 +39,7 @@ static PubSubClient client(espClient);
 /* TASK */
 static const int16_t      BUTTON_TASK_DELAY        = 50;
 static const int8_t       BUTTON_TASK_PRIORITY     = 3;
-static const int16_t      BUTTON_TASK_STACK_SZ     = 2048;
+static const int16_t      BUTTON_TASK_STACK_SZ     = 4096;
 static TaskHandle_t       button_task_handle       = NULL;
 
 /* FUNCTIONS */
@@ -117,43 +117,56 @@ void loop() {
 
 void callback(char *topic, byte *payload, unsigned int length) 
 {
-  String msg;
+  JsonDocument doc_deserialize;
+
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
   Serial.print("Message:");
 
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
-    msg += (char)payload[i];
   }
+
+  deserializeJson(doc_deserialize, payload, length);
+  const char *actuador = doc_deserialize["actuador"];
+  const char *color = doc_deserialize["color"];
 
   Serial.println();
   Serial.println("-----------------------");
 
-  if(msg == "GREEN")
+  if (strcmp(actuador,"LED") == 0)
   {
-    ledcWrite(rgb_pinout[0], 255);
-    ledcWrite(rgb_pinout[1], 0);    // Verde al maximo
-    ledcWrite(rgb_pinout[2], 255);
-  }
+    if (strcmp(color,"GREEN") == 0)
+    {
+      ledcWrite(rgb_pinout[0], 255);
+      ledcWrite(rgb_pinout[1], 0);    // Verde al maximo
+      ledcWrite(rgb_pinout[2], 255);
+    }
 
-  if(msg == "RED")
-  {
-    ledcWrite(rgb_pinout[0], 0);    // Rojo al maximo
-    ledcWrite(rgb_pinout[1], 255);    
-    ledcWrite(rgb_pinout[2], 255);
+    if (strcmp(color,"RED") == 0)
+    {
+      ledcWrite(rgb_pinout[0], 0);    // Rojo al maximo
+      ledcWrite(rgb_pinout[1], 255);    
+      ledcWrite(rgb_pinout[2], 255);
+    }
   }
 }
 
 void button_task(void *pvParameters)
 {
   static bool stop = true;
+  char output[256];
+  JsonDocument doc_serialize;
 
   for(;;)
   {
       if((digitalRead(button_pin) == LOW) && (stop == true))
       {
-        client.publish(topic_button, "STOP");
+        doc_serialize["sensor"] = "boton_emergencia";
+        doc_serialize["estado"] = "STOP";
+        serializeJson(doc_serialize, output);
+
+        client.publish(topic_button, output);
         stop = !stop;
 
         while(digitalRead(button_pin) == LOW)
@@ -164,7 +177,11 @@ void button_task(void *pvParameters)
 
       if((digitalRead(button_pin) == LOW) && (stop == false))
       {
-        client.publish(topic_button, "CONTINUE");
+        doc_serialize["sensor"] = "boton_emergencia";
+        doc_serialize["estado"] = "CONTINUE";
+        serializeJson(doc_serialize, output);
+
+        client.publish(topic_button, output);
         stop = !stop;
 
         while(digitalRead(button_pin) == LOW)
