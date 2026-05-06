@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import time
 
 # Configuración por defecto (puedes cambiarla directamente aquí o mediante parámetros)
 BROKER = "broker.emqx.io"   # broker público
@@ -27,7 +28,6 @@ class MQTTManager:
         """Establece la conexión con el broker y arranca el bucle en segundo plano."""
         try:
             self.client.connect(self.broker, self.port, 60)
-            self.client.loop_start()   # No bloqueante
             self.connected = True
             print(f"[MQTT] Conectado a {self.broker}:{self.port}")
         except Exception as e:
@@ -41,7 +41,7 @@ class MQTTManager:
             return
         self.client.publish(topic, message)
 
-    def subscribe(self, topic, callback):
+    def subscribe(self, topic, on_message):
         """
         Suscribe un callback específico para un topic.
         El callback debe recibir (client, userdata, msg).
@@ -49,22 +49,27 @@ class MQTTManager:
         if not self.connected:
             print("[MQTT] No conectado, no se puede suscribir.")
             return
-        self.client.message_callback_add(topic, callback)
+        self.client.message_callback_add(topic, on_message)
         self.client.subscribe(topic)
         print(f"[MQTT] Suscrito a {topic}")
 
-    def set_default_callback(self, callback):
+    def set_default_callback(self, on_message):
         """Establece el callback por defecto para todos los mensajes."""
-        self.client.on_message = callback
-
+        self.client.on_message = on_message
+    def start(self):
+        """Inicia el bucle de MQTT en segundo plano."""
+        if not self.connected:
+            print("[MQTT] No conectado, no se puede iniciar el bucle.")
+            return
+        self.client.loop_start()
+        print("[MQTT] Bucle iniciado")
 
 # Crear una instancia global única con la configuración deseada
 manager = MQTTManager(
     broker=BROKER,
     port=PORT,
-    username=USERNAME,   # descomenta si usas autenticación
-    password=PASSWORD    # username=None, password=None
+    username=None,   # descomenta si usas autenticación
+    password=None    # username=None, password=None
 )
-
-# Conectar automáticamente al importar el módulo
 manager.connect()
+manager.start()

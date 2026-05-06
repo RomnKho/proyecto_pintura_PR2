@@ -8,7 +8,6 @@
 
 from robodk import robolink    # RoboDK API
 from robodk import robomath    # Robot toolbox
-RDK = robolink.Robolink()
 
 import init
 
@@ -23,6 +22,8 @@ import random
 
 INTERIOR = 1
 EXTERIOR = 2
+
+RDK_g = robolink.Robolink()
 
 """Funciones para la generación de botes y tapas, así como para el manejo de las colas de productos a fabricar y en proceso de fabricación. 
 Estas funciones se ejecutan en hilos separados para permitir la concurrencia en la generación y manejo de productos en ambas líneas de producción (interna y externa)."""
@@ -46,23 +47,33 @@ def encolar_linea(data, tipo, linea) -> int:
 def handle_message(mqttc, topic, payload):
     data = json.loads(payload)
     tipo = data.get("tipo")
+    cantidad = data.get("cantidad")
     linea = data.get("linea")
-    err = encolar_linea(data, tipo, linea)
-    if err != 0:
-        print("Error: No se pudo encolar el producto")
+    for _ in range(cantidad):
+        err = encolar_linea(data, tipo, linea)
+        if err != 0:
+            print("Error: No se pudo encolar el producto")
 
  # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
 def generar_b_int():
+    RDK = robolink.Robolink()
     while init.running:
-        bote = init.cola_productos_int.get() # Espera a que desencolar_int le mande trabajo
+        if not init.cola_per_int.empty():
+            bote = init.cola_per_int.get() # Espera a que desencolar_int le mande trabajo
+        elif not init.cola_gen_int.empty():
+            bote = init.cola_gen_int.get() # Aquí el hilo se queda pausado si no hay nada
+        else:
+            time.sleep(1) # Si no hay nada en ninguna de las colas, espera un tiempo antes de volver a revisar para evitar un uso excesivo de CPU
+            continue
+        init.cola_productos_int.put(bote.copy()) # Se pone el diccionario en los productos procesados para ser generados y no perder los datos de la cola de pedidos.
 
         tamano = bote.get("tamano")
-        bote_obj = RDK.Item(f"Bote_{tamano}L")
-        tapa_obj = RDK.Item(f"Tapa_{tamano}L")
+        bote_int_obj = RDK.Item(f"Bote_{tamano}L")
+        tapa_int_obj = RDK.Item(f"Tapa_{tamano}L")
 
         # --TODO: Terminar el proceso de generacion de botes de la linea interior -----------------------------------------------------
 
-        bote_obj.Copy()
+        bote_int_obj.Copy()
         bote_copy = RDK.Paste()
 
         bote_copy.setName(f"CBote_Int")
@@ -77,7 +88,7 @@ def generar_b_int():
             
     # WARNING: Problema de superposicion de tapas, ya que puede ser que las tapas de la linea interior y exterior se creen a la vez o intercaladamente, haciendo que se superpongan y que luego el robot no sepa cual es cual.
         with init.cola_tapas_lock:
-            tapa_obj.Copy()
+            tapa_int_obj.Copy()
             tapa_copy = RDK.Paste()
 
             tapa_copy.setName(f"CTapa_Int")
@@ -87,21 +98,30 @@ def generar_b_int():
 
             tapa_copy.setParentStatic(RDK.Item("[TAPAS]FrameCinta"))
             init.cola_tapas.put(INTERIOR) # Se agraga la linea de la cola para que luego el scara sepa a que linea pertenece la tapa que va a manipular
-                
-        time.sleep(30) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
+            time.sleep(10) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
+        time.sleep(20) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def generar_b_ext():
+    RDK = robolink.Robolink()
     while init.running:
-        bote = init.cola_productos_ext.get() # Espera a que desencolar_ext le mande trabajo
+        if not init.cola_per_ext.empty():
+            bote = init.cola_per_ext.get() # Espera a que desencolar_ext le mande trabajo
+        elif not init.cola_gen_ext.empty():
+            bote = init.cola_gen_ext.get() # Aquí el hilo se queda pausado si no hay nada
+        else:
+            time.sleep(1) # Si no hay nada en ninguna de las colas, espera un tiempo antes de volver a comprobar para evitar un uso excesivo de CPU
+            continue
+        init.cola_productos_ext.put(bote.copy()) # Se pone el diccionario en los productos procesados para ser generados y no perder los datos de la cola de pedidos.
+
         tamano = bote.get("tamano")
-        bote_obj = RDK.Item(f"Bote_{tamano}L")
-        tapa_obj = RDK.Item(f"Tapa_{tamano}L")
+        bote_ext_obj = RDK.Item(f"Bote_{tamano}L")
+        tapa_ext_obj = RDK.Item(f"Tapa_{tamano}L")
 
         # --TODO: Terminar el proceso de generacion de botes de la linea exterior -----------------------------------------------------
-        bote_obj.Copy()
+        bote_ext_obj.Copy()
         bote_copy = RDK.Paste()
 
         bote_copy.setName(f"CBote_Ext")
@@ -114,7 +134,7 @@ def generar_b_ext():
         init.cola_actual_ext.put(bote)
 
         with init.cola_tapas_lock:
-            tapa_obj.Copy()
+            tapa_ext_obj.Copy()
             tapa_copy = RDK.Paste()
 
             tapa_copy.setName(f"CTapa_Ext")
@@ -127,37 +147,9 @@ def generar_b_ext():
 
             time.sleep(30) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ #
-
-def encolar_procesados_int(bote: dict, cantidad: int):
-        for _ in range(cantidad):
-            init.cola_productos_int.put(bote.copy())
-
-def encolar_procesados_ext(bote:dict, cantidad: int):
-        for _ in range(cantidad):
-            init.cola_productos_ext.put(bote.copy())
-
-def desencolar_int():
-    while init.running:
-        if not init.cola_per_int.empty():
-            data = init.cola_per_int.get()
-        else:
-            data = init.cola_gen_int.get() # Aquí el hilo se queda pausado si no hay nada
         
-        cantidad = data.get("cantidad", 0)
-        encolar_procesados_int(data, cantidad) # Se encolan los productos procesados para que el hilo de generación los copie y los coloque en la cinta transportadora
-
-def desencolar_ext():
-    while init.running:
-        if not init.cola_per_ext.empty():
-            data = init.cola_per_ext.get()
-        else:
-            data = init.cola_gen_ext.get() # Aquí el hilo se queda pausado si no hay nada
-        
-        cantidad = data.get("cantidad", 0)
-        encolar_procesados_ext(data, cantidad) # Se encolan los productos procesados para que el hilo de generación los copie y los coloque en la cinta transportadora
-        
-
 def actual_cinta_int():
+    RDK = robolink.Robolink()
     while init.running:
         bote_en_camino = init.cola_actual_int.get()
 
@@ -169,6 +161,7 @@ def actual_cinta_int():
         init.bote_procesado_int.clear() # Se limpia el evento para que el hilo pueda volver a esperar por el siguiente producto a procesar
 
 def actual_cinta_ext():
+    RDK = robolink.Robolink()
     while init.running:
         bote_en_camino = init.cola_actual_ext.get()
 
@@ -179,35 +172,37 @@ def actual_cinta_ext():
         init.bote_procesado_ext.wait() # El hilo se bloquea aquí hasta que el evento bote_procesado_ext sea seteado, lo que indicará que el producto actual ha sido procesado y otro puede encabezar su proceso de fabricación
         init.bote_procesado_ext.clear() # Se limpia el evento para que el hilo pueda volver a esperar por el siguiente producto a procesar
 
-def generator_gen():
-    while init.running:
-        numero_tamaño = random.randint(0, 2)
-        numero_linea = random.randint(0, 1)
-        tamano = ["Pequeño", "Mediano", "Grande"][numero_tamaño]
-        linea = ["int", "ext"][numero_linea]
-        cantidad = random.randint(1, 5)
-        data = {
-            "tipo": "gen",
-            "linea": linea,
-            "tamano": tamano,
-            "cantidad": cantidad
-        }
-        err = encolar_linea(data, "gen", linea)
-        if err != 0:
-            print("Error: No se pudo encolar el producto")
-        time.sleep(10) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
+# def generator_gen():
+#     RDK = robolink.Robolink()
+#     while init.running:
+#         numero_tamaño = random.randint(0, 2)
+#         numero_linea = random.randint(0, 1)
+#         tamano = ["0.5", "2", "5"][numero_tamaño]
+#         linea = ["int", "ext"][numero_linea]
+#         # cantidad = random.randint(1, 5)
+#         data = {
+#             "tipo": "gen",
+#             "linea": linea,
+#             "tamano": tamano,
+#             "cantidad": 1
+#         }
+#         err = encolar_linea(data, "gen", linea)
+#         if err != 0:
+#             print("Error: No se pudo encolar el producto")
+#         time.sleep(10) # Espera un tiempo antes de generar el siguiente producto para evitar un uso excesivo de CPU y para simular un proceso de generación más realista
 
-threading.Thread(target=generator_gen, daemon=True).start()
+
+print("Creando Hilos")
+# threading.Thread(target=generator_gen, daemon=True).start()
 threading.Thread(target=actual_cinta_int, daemon=True).start()
 threading.Thread(target=actual_cinta_ext, daemon=True).start()
-threading.Thread(target=desencolar_int, daemon=True).start()
-threading.Thread(target=desencolar_ext, daemon=True).start()
 threading.Thread(target=generar_b_int, daemon=True).start()
 threading.Thread(target=generar_b_ext, daemon=True).start()
 
-try:
-    while init.running:
-        time.sleep(1)
-        
-except KeyboardInterrupt:
-    print("Programa terminado por el usuario")
+if __name__ == "__main__":
+    try:
+        while init.running:
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("Programa terminado por el usuario")

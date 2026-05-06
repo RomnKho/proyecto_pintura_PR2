@@ -12,7 +12,7 @@ TOPIC_PUB = "emqx/ESP32_R/pub/palet"  # Define el topic de publicación (puedes 
 robot = RDK.Item('Yaskawa_Pale')  # Oculta el paletizador en la simulación
 
 def paletizador_int():
-    while True:
+    while init.running:  # Asegura que el hilo se ejecute mientras la aplicación esté activa
         init.bote_listo_robot_int.wait() # Espera la señal del sensor[cite: 17]
         init.bote_listo_robot_int.clear()
         
@@ -24,7 +24,7 @@ def paletizador_int():
             init.contador_int += 1
 
 def paletizador_ext():
-    while True:
+    while init.running:  # Asegura que el hilo se ejecute mientras la aplicación esté activa
         init.bote_listo_robot_ext.wait()  # Espera a que el bote esté listo para el robot
         init.bote_listo_robot_ext.clear()  # Limpia el evento para la próxima
 
@@ -36,11 +36,12 @@ def paletizador_ext():
             init.contador_ext += 1
 
 def contadores():
-    while True:
-        if ((init.contador_per % 27) - 2) == 0:
-            mqtt.manager.publish(f"{TOPIC_PUB}_per", f"Paletizado bote {init.contador_per} en línea externa")
-        if ((init.contador_ext % 27) - 2) == 0:
-            mqtt.manager.publish(f"{TOPIC_PUB}_ext", f"Paletizado bote {init.contador_ext} en línea externa")
-        if ((init.contador_int % 27) - 2) == 0:
-            mqtt.manager.publish(f"{TOPIC_PUB}_int", f"Paletizado bote {init.contador_int} en línea interna")
-        time.sleep(0.6)  # Ajusta el tiempo de espera según la frecuencia de actualización deseada    
+    while init.running:  # Asegura que el hilo se ejecute mientras la aplicación esté activa
+        with init.paletizador:  # Asegura que solo un paletizador opere a la vez
+            if ((init.contador_per % 27) - 2) == 0:
+                mqtt.manager.publish(f"{TOPIC_PUB}_per", f"{{ \"Cantidad\" : {init.contador_per}, \"Tipo\" : \"Personalizados\" }}")
+            if ((init.contador_ext % 27) - 2) == 0:
+                mqtt.manager.publish(f"{TOPIC_PUB}_ext", f"{{ \"Cantidad\" : {init.contador_ext}, \"Tipo\" : \"Externos\" }}")
+            if ((init.contador_int % 27) - 2) == 0:
+                mqtt.manager.publish(f"{TOPIC_PUB}_int", f"{{ \"Cantidad\" : {init.contador_int}, \"Tipo\" : \"Internos\" }}")
+        time.sleep(0.5)  # Ajusta el tiempo de espera según la frecuencia de actualización deseada

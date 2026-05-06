@@ -4,8 +4,11 @@ import time
 import mqtt_client as mqtt
 import generator as g
 
-topic_sub = "emqx/ESP32_R/sub/gen"
-topic_pub = "emqx/ESP32_R/pub/global"
+from robodk import robolink    # RoboDK API
+RDK = robolink.Robolink()
+
+topic_sub = "emqx/andreu/sub/gen"
+topic_pub = "emqx/andreu/pub/global"
 
 class Payload(object):
     def __init__(self, rgb_hex, tamano, cantidad, tipo, linea):
@@ -16,7 +19,7 @@ class Payload(object):
         self.linea = linea
 
 def as_payload(dct):
-    return Payload(dct['rgb_hex'], dct['tamano'], dct['cantidad'], dct['tipo'], dct['linea'])
+    return Payload(dct['rgb_hex'], dct['tamano'], int(dct['cantidad']), dct['tipo'], dct['linea'])
 
 def on_message(client, userdata, msg):
     payload = msg.payload.decode('utf-8')
@@ -31,11 +34,11 @@ def on_message(client, userdata, msg):
 
     # Publicar confirmación de recepción
     message_to_pub = f"Cod: {desJson.rgb_hex}, Sz: {desJson.tamano}, q: {desJson.cantidad}, type: {desJson.tipo}"
+    print(f"Recibido en {topic}: {message_to_pub}")
     mqtt.manager.publish(topic_pub, message_to_pub)
-
+    print(f"Publicado en {topic_pub}: {message_to_pub}")
     # Llamar a la función de generación (la que encola los pedidos)
     g.handle_message(client, topic, payload)   # pasamos el cliente (aunque no se use dentro)
-
 
 mqtt.manager.subscribe(topic_sub, on_message)
 
