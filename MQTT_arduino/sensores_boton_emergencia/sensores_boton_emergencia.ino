@@ -9,7 +9,7 @@
 #include <ArduinoJson.h>
 
 /* RGB LED */
-static const gpio_num_t   rgb_pinout[]  = {GPIO_NUM_27, GPIO_NUM_26, GPIO_NUM_32};
+static const gpio_num_t   rgb_pinout[]  = {GPIO_NUM_10, GPIO_NUM_11, GPIO_NUM_12};
 static const uint8_t      SZ_RGB_ARRAY  = sizeof(rgb_pinout) / sizeof(rgb_pinout[0]);
 static const uint32_t     FREQ          = 1000;
 static const uint8_t      RESOLUTION    = 8;
