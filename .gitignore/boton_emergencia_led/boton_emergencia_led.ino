@@ -20,18 +20,30 @@ static uint8_t            rgb_values[SZ_RGB_ARRAY];
 /* BUTTON */
 static const gpio_num_t   button_pin     = GPIO_NUM_4;
 
+/* LEDS */
+
+static const gpio_num_t LED_PER = GPIO_NUM_5;  // Línea de Personalizados
+static const gpio_num_t LED_EXT = GPIO_NUM_18; // Línea de Exterior
+static const gpio_num_t LED_INT = GPIO_NUM_19; // Línea de Interior
+
 /* CONFIG WIFI */
 static const char *ssid          = "DIGIFIBRA-ZsPz";
 static const char *password      = "K9299Rdy2dGC";
 
 /* CONFIG MQTT BROKER */
 static const char   *mqtt_broker   = "broker.emqx.io";
-static const char   *topic_button  = "emqx/ESP32_R/arduino/button";
-static const char   *topic_led     = "emqx/ESP32_R/roboDK/led";
 static const char   *mqtt_username = "emqx";
 static const char   *mqtt_password = "public";
 static const int    mqtt_port      = 1883;
 static String       client_id;
+
+/* TOPICS */
+static const char   *topic_button  = "emqx/ESP32_R/arduino/button";
+static const char   *topic_led     = "emqx/ESP32_R/roboDK/led";
+static const char   *topic_per     = "emqx/ESP32_R/pub/palet_per";
+static const char   *topic_ext     = "emqx/ESP32_R/pub/palet_ext";
+static const char   *topic_int     = "emqx/ESP32_R/pub/palet_int";
+
 
 static WiFiClient espClient;
 static PubSubClient client(espClient);
@@ -48,19 +60,6 @@ void button_task  (void *pvParameters);
 
 void setup() 
 {
-
-  for(int i = 0; i < SZ_RGB_ARRAY; i++ )
-  {
-    ledcAttachChannel(rgb_pinout[i], FREQ, RESOLUTION, CHANNELS[i]);
-  }
-
-  ledcWrite(rgb_pinout[0], 0); // Empieza rojo
-
-  pinMode(button_pin, INPUT_PULLUP);
-
-  Serial.begin(115200);
-  delay(1000);
-
   // WiFi config
   WiFi.begin(ssid, password);
   Serial.printf("\nConnecting to Wifi");
@@ -92,10 +91,35 @@ void setup()
     }
   }
 
+  /* Config el la led rgb de emergencia */
+  for(int i = 0; i < SZ_RGB_ARRAY; i++ )
+  {
+    ledcAttachChannel(rgb_pinout[i], FREQ, RESOLUTION, CHANNELS[i]);
+  }
+
+  ledcWrite(rgb_pinout[0], 0); // Empieza rojo
+
+  /* Config el boton de emergencia */
+  pinMode(button_pin, INPUT_PULLUP);
+
+  /* Config las led de cada linea y paletizado */
+  pinMode(LED_PER, OUTPUT);
+  pinMode(LED_EXT, OUTPUT);
+  pinMode(LED_INT, OUTPUT);
+  digitalWrite(LED_PER, LOW);
+  digitalWrite(LED_EXT, LOW);
+  digitalWrite(LED_INT, LOW);
+
+  Serial.begin(115200);
+  delay(1000);
+
   delay(500);
-  // "Subscribe" to publisher and suscriptor channels
+
   client.publish("emqx/ESP32_R/pub", "Hi, I'm Roman's ESP32");
   client.subscribe(topic_led);
+  client.subscribe(topic_per);
+  client.subscribe(topic_ext);
+  client.subscribe(topic_int);
 
   xTaskCreate(
     button_task,
@@ -121,33 +145,46 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
-  Serial.print("Message:");
 
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-
-  deserializeJson(doc_deserialize, payload, length);
-  const char *actuador = doc_deserialize["actuador"];
-  const char *color = doc_deserialize["color"];
-
-  Serial.println();
-  Serial.println("-----------------------");
-
-  if (strcmp(actuador,"LED") == 0)
+  if (strcmp(topic, topic_per) == 0) 
   {
-    if (strcmp(color,"GREEN") == 0)
-    {
-      ledcWrite(rgb_pinout[0], 255);
-      ledcWrite(rgb_pinout[1], 0);    // Verde al maximo
-      ledcWrite(rgb_pinout[2], 255);
-    }
+    Serial.println("-> ATENCIÓN: Palet PERSONALIZADO al límite de capacidad.");
+    digitalWrite(LED_PER, HIGH);
+  } 
+  else if (strcmp(topic, topic_ext) == 0) 
+  {
+    Serial.println("-> ATENCIÓN: Palet EXTERNO al límite de capacidad.");
+    digitalWrite(LED_EXT, HIGH);
+  } 
+  else if (strcmp(topic, topic_int) == 0) 
+  {
+    Serial.println("-> ATENCIÓN: Palet INTERNO al límite de capacidad.");
+    digitalWrite(LED_INT, HIGH);
+  }
+  else 
+  {
+    deserializeJson(doc_deserialize, payload, length);
+    const char *actuador = doc_deserialize["actuador"];
+    const char *color = doc_deserialize["color"];
 
-    if (strcmp(color,"RED") == 0)
+    Serial.println();
+    Serial.println("-----------------------");
+
+    if (strcmp(actuador,"LED") == 0)
     {
-      ledcWrite(rgb_pinout[0], 0);    // Rojo al maximo
-      ledcWrite(rgb_pinout[1], 255);    
-      ledcWrite(rgb_pinout[2], 255);
+      if (strcmp(color,"GREEN") == 0)
+      {
+        ledcWrite(rgb_pinout[0], 255);
+        ledcWrite(rgb_pinout[1], 0);    // Verde al maximo
+        ledcWrite(rgb_pinout[2], 255);
+      }
+
+      if (strcmp(color,"RED") == 0)
+      {
+        ledcWrite(rgb_pinout[0], 0);    // Rojo al maximo
+        ledcWrite(rgb_pinout[1], 255);    
+        ledcWrite(rgb_pinout[2], 255);
+      }
     }
   }
 }
@@ -200,10 +237,17 @@ void reconnect()
   {
     Serial.print("Intentando conexión MQTT...");
 
+    // Crear un ID de cliente aleatorio
+    String clientId = "ESP32Client-";
+    clientId += String(random(0, 0xffff), HEX);
+
     if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) 
     {
       Serial.println("conectado");
-      client.subscribe(topic_led); 
+      client.subscribe(topic_led);
+      client.subscribe(topic_per);
+      client.subscribe(topic_ext);
+      client.subscribe(topic_int); 
     } 
     else 
     {

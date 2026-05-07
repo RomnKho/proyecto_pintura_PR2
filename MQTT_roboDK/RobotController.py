@@ -44,7 +44,7 @@ def as_payload_button(dct):
 
 # ------- FUNCION DE HANDLE ------------------------
 
-def handle_message(mqttc, topic, payload):
+def handle_message(client, topic, payload):
 
     RDK = Robolink()
 
@@ -52,7 +52,7 @@ def handle_message(mqttc, topic, payload):
     if topic == topic_sub:
         desJson_pedido = json.loads(payload, object_hook = as_payload_pedido)
         message_to_pub = f"Cod: {desJson_pedido.rgb_hex}, Sz: {desJson_pedido.tamano}, q: {desJson_pedido.cantidad}, type: {desJson_pedido. tipo}"
-        mqttc.publish(topic_pub, message_to_pub)
+        client.publish(topic_pub, message_to_pub)
 
         # Meto en la cola la info del pedido
         if desJson_pedido.tipo == "Int":
@@ -65,16 +65,16 @@ def handle_message(mqttc, topic, payload):
     if topic == topic_button:
         desJson_button =  json.loads(payload, object_hook = as_payload_button)
         message_to_pub = f"sensor: {desJson_button.sensor}, estado: {desJson_button.estado}"
-        mqttc.publish(topic_pub, message_to_pub)
+        client.publish(topic_pub, message_to_pub)
 
         # Si se ha pulsado el boton se hace la parada de emergencia
         if desJson_button.estado == "STOP":
             msg_led = json.dumps({"actuador":"LED","color":"GREEN"})
-            mqttc.publish(topic_led, msg_led)
+            client.publish(topic_led, msg_led)
             RDK.setSimulationSpeed(0)
 
         # Si se vuelve a pulsar el proceso puede continuar
         else:
             msg_led = json.dumps({"actuador":"LED","color":"RED"})
-            mqttc.publish(topic_led, msg_led)
+            client.publish(topic_led, msg_led)
             RDK.setSimulationSpeed(1)

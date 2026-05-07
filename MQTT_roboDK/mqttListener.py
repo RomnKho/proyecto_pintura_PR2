@@ -6,6 +6,7 @@ from robodk.robomath import *
 from robodk.robolink import *
 import paho.mqtt.client as mqtt
 import RobotController  as rc
+import mqtt_client as mqtt
 import Init
 import MoveCinta as mc
 
@@ -17,24 +18,23 @@ passwd_dsic  = "UPV2024"
 topic_sub    = "emqx/ESP32_R/sub"
 topic_pub    = "emqx/ESP32_R/pub"
 topic_button = "emqx/ESP32_R/arduino/button"
-
 RDK = Robolink()
 
 # Callback
-def on_message(mqttc, obj, msg): 
+def on_message(client, userdata, msg): 
     payload = msg.payload.decode('utf-8')
     topic = msg.topic
     qos = msg.qos
-    mqttc.publish(topic_pub, "Estoy en on_message")
-    rc.handle_message(mqttc, topic, payload)
+    
+    rc.handle_message(client, topic, payload)
 
-mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-mqttc.on_message = on_message
+mqtt.manager.connect()  # Se conecta al broker 
+mqtt.manager.start()    # Hace empezar el loop no bloqueante
 
-# mqttc.username_pw_set(username=user, password=passwd)
-mqttc.connect(free_broker, port, 60)
-mqttc.subscribe(topic_sub, 0)
-mqttc.subscribe(topic_button, 0)
+mqtt.manager.subscribe(topic_sub, on_message)
+mqtt.manager.subscribe(topic_button, on_message)
+
+mqtt.manager.publish(topic_pub, "Ready from RoboDK")
 
 # Crear los threads
 hilo_cintas = threading.Thread(target = mc.mueve_cinta)
@@ -47,7 +47,3 @@ hilo_cintas.start()
 hilo_generar_botes_interior.start()
 hilo_generar_botes_exterior.start()
 hilo_pintar_botes.start()
-
-mqttc.publish(topic_pub, "Ready from RoboDK")
-
-mqttc.loop_forever()
