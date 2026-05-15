@@ -113,9 +113,11 @@ def generar_bote_interior():
             # Miro si ha colisionado el bote con el sensor
             while Init.cola_info_pedido_interior.empty():
                 if botes_parar:
-                    if sensor_place.Collision(botes_parar[0]):
+                    if sensor_place.Collision(botes_parar[0]["bote"]):
                         # Parar cinta
                         Init.stop_interior = True
+                        # Mando info del bote al scara para que pueda eliminarlo posteriormente
+                        Init.cola_num_bote_int.put(botes_parar[0]["num_bote"])
                         # Mandar okei a scara
                         Init.cola_sinc_scara_interior.set()
                         # Scara decide cuanto retomar
@@ -135,9 +137,11 @@ def generar_bote_interior():
             for _ in range(int(cantidad)):
                 # Miro si ha colisionado el bote con el sensor
                 if botes_parar:
-                    if sensor_place.Collision(botes_parar[0]):
+                    if sensor_place.Collision(botes_parar[0]["bote"]):
                         # Parar cinta
                         Init.stop_interior = True
+                        # Mando info del bote al scara para que pueda eliminarlo posteriormente
+                        Init.cola_num_bote_int.put(botes_parar[0]["num_bote"])
                         # Mandar okei a scara
                         Init.cola_sinc_scara_interior.set()
                         # Scara decide cuanto retomar
@@ -152,7 +156,6 @@ def generar_bote_interior():
 
                 with Init.mutex_num_pedido:
                     bote_pintura_copy.setName(f"Bote{tam}_{Init.num_pedido}")
-                    Init.num_pedido += 1
 
                 bote_pintura_copy.setParentStatic(frame_cinta)
                 Init.cola_bote_a_pintar_interior.put({"item":bote_pintura_copy, "tam":tam})
@@ -161,12 +164,15 @@ def generar_bote_interior():
                 partes_bote = bote_pintura_copy.Childs()
                 bote_nombre = f"BotePintura{tam}_bote"  # Busco al child
 
-                for i in range(3):              # Distingo el bote propio del objeto en si
+                # Distingo el bote propio del objeto en si
+                for i in range(3):              
                     if bote_nombre in partes_bote[i].Name():
                         bote = partes_bote[i]
                         break
 
-                botes_parar.append(bote) # !!!
+                with Init.mutex_num_pedido:
+                    botes_parar.append({"bote":bote, "num_bote": Init.num_pedido})
+                    Init.num_pedido += 1
 
                 # Disminuyo el contador de botes restantes
                 with Init.mutex_pedido_interior:
@@ -197,9 +203,11 @@ def generar_bote_exterior():
         while 1:
             while Init.cola_info_pedido_exterior.empty():
                 if botes_parar:
-                    if sensor_place.Collision(botes_parar[0]):
+                    if sensor_place.Collision(botes_parar[0]["bote"]):
                         # Parar cinta
                         Init.stop_exterior = True
+                        # Mando info del bote al scara para que pueda eliminarlo posteriormente
+                        Init.cola_num_bote_ext.put(botes_parar[0]["num_bote"])
                         # Mandar okei a scara
                         Init.cola_sinc_scara_exterior.set()
                         # Scara decide cuanto retomar
@@ -219,9 +227,11 @@ def generar_bote_exterior():
             for _ in range(int(cantidad)):
 
                 if botes_parar:
-                    if sensor_place.Collision(botes_parar[0]):
+                    if sensor_place.Collision(botes_parar[0]["bote"]):
                         # Parar cinta
                         Init.stop_exterior = True
+                        # Mando info del bote al scara para que pueda eliminarlo posteriormente
+                        Init.cola_num_bote_ext.put(botes_parar[0]["num_bote"])
                         # Mandar okei a scara
                         Init.cola_sinc_scara_exterior.set()
                         # Scara decide cuanto retomar
@@ -236,7 +246,6 @@ def generar_bote_exterior():
 
                 with Init.mutex_num_pedido:
                     bote_pintura_copy.setName(f"Bote{tam}_{Init.num_pedido}")
-                    Init.num_pedido += 1
                 
                 bote_pintura_copy.setParentStatic(frame_cinta)
                 Init.cola_bote_a_pintar_exterior.put({"item":bote_pintura_copy, "tam":tam})
@@ -250,7 +259,9 @@ def generar_bote_exterior():
                         bote = partes_bote[i]
                         break
 
-                botes_parar.append(bote) # !!!
+                with Init.mutex_num_pedido:
+                    botes_parar.append({"bote":bote, "num_bote": Init.num_pedido})
+                    Init.num_pedido += 1
 
                 # Disminuyo el contador de botes restantes
                 with Init.mutex_pedido_exterior:
@@ -313,10 +324,10 @@ def generar_tapas():
 
             tapa_copy.setParentStatic(frame_tapas)
             tapa_copy.setName(f"Tapa{tam_ext}_{num_tapas}")
-            num_tapas += 1
 
             # Meto en la cola local
             tapas_parar_v.append({"item":tapa_copy, "linea": "Ext", "tam": tam_ext, "num_tapa": num_tapas})
+            num_tapas += 1
             pendientes_ext -= 1
 
             with Init.mutex_pedido_tapas:
@@ -349,9 +360,10 @@ def generar_tapas():
 
             tapa_copy.setParentStatic(frame_tapas)
             tapa_copy.setName(f"Tapa{tam_int}_{num_tapas}")
-            num_tapas += 1
+
             # Meto en la cola local
             tapas_parar_v.append({"item":tapa_copy, "linea": "Int", "tam": tam_int, "num_tapa": num_tapas})
+            num_tapas += 1
             pendientes_int -= 1
 
             with Init.mutex_pedido_tapas:

@@ -108,6 +108,7 @@ def move_scara():
         tapa_obj = datos_tapa["item"]
         linea = datos_tapa["linea"]
         tam = datos_tapa["tam"]
+        num_tapa = datos_tapa["num_tapa"]
 
         # Ir a por la tapa
         PickPlace.scara_pick(tapa_obj)
@@ -118,9 +119,11 @@ def move_scara():
 
             Init.cola_sinc_scara_interior.wait()
             Init.cola_sinc_scara_interior.clear()
-
+            # Recojo el numero de bote a reemplazar
+            num_bote = Init.cola_num_bote_int.get()
+            
             PickPlace.scara_place_interior(tapa_obj, tam)
-            # Replace.reemplazo(linea, tam, num_bote, num_tapa)
+            Replace.reemplazo(linea, tam, num_bote, num_tapa)
 
             Init.stop_interior = False
 
@@ -128,8 +131,9 @@ def move_scara():
 
             Init.cola_sinc_scara_exterior.wait()
             Init.cola_sinc_scara_exterior.clear()
+            num_bote = Init.cola_num_bote_ext.get()
 
             PickPlace.scara_place_exterior(tapa_obj, tam)
-            # Replace.reemplazo(linea, tam, num_bote, num_tapa)
+            Replace.reemplazo(linea, tam, num_bote, num_tapa)
 
             Init.stop_exterior = False

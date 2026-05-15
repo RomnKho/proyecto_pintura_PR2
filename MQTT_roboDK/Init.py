@@ -42,6 +42,8 @@ cola_bote_a_pintar_exterior = Queue()
 
 # Cola para el Scara
 cola_scara = Queue()
+cola_num_bote_int = Queue()
+cola_num_bote_ext = Queue()
 
 # Colas de sincronizacion entre los hilos de cinta y generacion de botes
 cola_sinc_spawn_interior = threading.Event()

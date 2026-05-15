@@ -33,9 +33,5 @@ def reemplazo(linea, tam, numBote, numTapa):
     bote_tapado_copy.setParentStatic(frame_cinta)
 
     # DESPAWN
-    partes_bote = bote_sin_tapa.Childs()
-
-    for i in range(3):
-        partes_bote[i].Delete()
-    
+    bote_sin_tapa.Delete()
     tapa.Delete()
