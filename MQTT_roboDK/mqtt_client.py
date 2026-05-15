@@ -72,3 +72,4 @@ manager = MQTTManager(
     username=None,   # descomenta si usas autenticación
     password=None    # username=None, password=None
 )
+

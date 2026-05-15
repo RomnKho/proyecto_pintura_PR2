@@ -6,6 +6,26 @@ from queue import Queue
 # Variable global para controlar la ejecución de los hilos
 running = True
 
+# Variable global para sincronizacion del sensor de tapas y el mueve_cinta_tapas
+stop_tapas = False
+stop_interior = False
+stop_exterior = False
+
+# Variables globales para contar numero de botes restantes
+tapas_restantes = 0
+botes_int_restantes = 0
+botes_ext_restantes = 0
+num_pedido = 0
+
+# Mutex para los copia-pega
+mutex_portapapeles = threading.Lock()
+
+# Mutex para contador de pedidos
+mutex_pedido_tapas = threading.Lock()
+mutex_pedido_interior = threading.Lock()
+mutex_pedido_exterior = threading.Lock()
+mutex_num_pedido = threading.Lock()
+
 # Colas para la informacion del pedido
 cola_info_pedido_interior = Queue()
 cola_info_pedido_exterior = Queue()
@@ -13,10 +33,30 @@ cola_info_pedido_exterior = Queue()
 # Colas para los botes que se generan
 cola_bote_pintura_interior = Queue()
 cola_bote_pintura_exterior = Queue()
+cola_info_pedido_interior_tapas = Queue()
+cola_info_pedido_exterior_tapas = Queue()
 
 # Colas con el bote a pintar
 cola_bote_a_pintar_interior = Queue()
 cola_bote_a_pintar_exterior = Queue()
+
+# Cola para el Scara
+cola_scara = Queue()
+
+# Colas de sincronizacion entre los hilos de cinta y generacion de botes
+cola_sinc_spawn_interior = threading.Event()
+cola_sinc_spawn_exterior = threading.Event()
+
+# Colas de sincronizacion entre los hilos de cinta y generacion de tapas
+cola_sinc_spawn_tapas = threading.Event()
+
+# Cola de sincronizacion entre los hilos de cinta y pintado de botes
+cola_sinc_pintar_interior = threading.Event()
+cola_sinc_pintar_exterior = threading.Event()
+
+# Cola de sincronizacion cinta botes y scara
+cola_sinc_scara_interior = threading.Event()
+cola_sinc_scara_exterior = threading.Event()
 
 # Cola con los colores a pintar
 cola_colores_interior = Queue()
