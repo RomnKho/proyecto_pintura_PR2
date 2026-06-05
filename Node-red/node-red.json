@@ -1,0 +1,513 @@
+[
+    {
+        "id": "tab_pintura_bonita_test",
+        "type": "tab",
+        "label": "pintura_personalizada_PR2",
+        "disabled": false,
+        "info": "Flujo de prueba con formulario HTML bonito. No modifica el flujo original."
+    },
+    {
+        "id": "tpl_formulario_bonito_test",
+        "type": "ui_template",
+        "z": "tab_pintura_bonita_test",
+        "group": "ui_group_pintura_bonita_test",
+        "name": "Formulario",
+        "order": 1,
+        "width": "8",
+        "height": "13",
+        "format": "<div id=\"pfb\">\n  <div class=\"pfb-card\">\n    <div class=\"pfb-head\">\n      <div class=\"pfb-title\">PEDIDO PINTURA</div>\n      <div class=\"pfb-subtitle\">Pintura personalizada a demanda</div>\n    </div>\n\n    <div class=\"pfb-body\">\n      <div class=\"pfb-section\"><span>Datos del cliente</span></div>\n\n      <div class=\"pfb-field\">\n        <label>Nombre <b>*</b></label>\n        <input id=\"pfb-nombre\" type=\"text\" placeholder=\"Nombre completo\" autocomplete=\"name\">\n      </div>\n\n      <div class=\"pfb-grid\">\n        <div class=\"pfb-field\">\n          <label>Teléfono</label>\n          <input id=\"pfb-tel\" type=\"tel\" placeholder=\"+34 600 000 000\" autocomplete=\"tel\">\n        </div>\n\n        <div class=\"pfb-field\">\n          <label>Email</label>\n          <input id=\"pfb-email\" type=\"email\" placeholder=\"correo@ejemplo.com\" autocomplete=\"email\">\n        </div>\n      </div>\n\n      <div class=\"pfb-section pfb-section-2\"><span>Detalles del pedido</span></div>\n\n      <div class=\"pfb-color-card\">\n        <label>Color de la pintura</label>\n        <div class=\"pfb-color-row\">\n          <input id=\"pfb-color\" type=\"color\" value=\"#3b82f6\" oninput=\"pfbUpdateColor()\">\n          <div id=\"pfb-color-preview\" class=\"pfb-color-preview\" style=\"background:#3b82f6\"></div>\n          <div class=\"pfb-color-info\">\n            <span>Color elegido</span>\n            <strong id=\"pfb-color-hex\">#3b82f6</strong>\n          </div>\n        </div>\n      </div>\n\n      <div class=\"pfb-grid\">\n        <div class=\"pfb-field\">\n          <label>Cantidad</label>\n          <div class=\"pfb-qty\">\n            <button type=\"button\" onclick=\"pfbChangeQty(-1)\">−</button>\n            <span id=\"pfb-qty-val\">1</span>\n            <button type=\"button\" onclick=\"pfbChangeQty(1)\">+</button>\n          </div>\n        </div>\n\n        <div class=\"pfb-field\">\n          <label>Tamaño</label>\n          <select id=\"pfb-tamano\">\n            <option value=\"\">Selecciona</option>\n            <option value=\"P\">0.5 L</option>\n            <option value=\"M\">2 L</option>\n            <option value=\"G\">5 L</option>\n          </select>\n        </div>\n      </div>\n\n      <div class=\"pfb-field\">\n        <label>Tipo</label>\n        <select id=\"pfb-tipo\">\n          <option value=\"\">Selecciona</option>\n          <option value=\"Ext\">Exterior</option>\n          <option value=\"Int\">Interior</option>\n        </select>\n      </div>\n\n      <div id=\"pfb-status\" class=\"pfb-status\"></div>\n\n      <button id=\"pfb-submit-btn\" type=\"button\" class=\"pfb-submit\" onclick=\"pfbEnviar()\">\n      <span id=\"pfb-submit-icon\">➤</span>\n      <span id=\"pfb-submit-text\">ENVIAR PEDIDO</span>\n      </button>\n    </div>\n  </div>\n</div>\n\n\n\n\n<style>\n@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap');\n\nhtml,\nbody,\n.nr-dashboard-layout,\n.nr-dashboard-theme,\n.nr-dashboard-theme md-content {\n  background: #070b16 !important;\n  font-family: 'DM Sans', system-ui, sans-serif !important;\n  overflow-x: hidden !important;\n}\n\n/* Quitar bordes, contornos y fondo del contenedor de Node-RED */\n.nr-dashboard-cardcontainer,\n.nr-dashboard-template,\nmd-card.nr-dashboard-template,\nmd-card.nr-dashboard-template > div,\nmd-card,\nui-card-panel {\n  background: transparent !important;\n  border: none !important;\n  outline: none !important;\n  box-shadow: none !important;\n}\n\n.nr-dashboard-cardcontainer {\n  padding: 0 !important;\n  margin: 0 !important;\n}\n\nmd-card.nr-dashboard-template {\n  margin: 0 !important;\n  padding: 0 !important;\n  min-height: 0 !important;\n  overflow: visible !important;\n}\n\nmd-card.nr-dashboard-template > div {\n  padding: 0 !important;\n  margin: 0 !important;\n}\n\n/* Formulario */\n#pfb {\n  font-family: 'DM Sans', system-ui, sans-serif;\n  width: 100%;\n  min-height: 100%;\n  box-sizing: border-box;\n  display: flex;\n  justify-content: center;\n  align-items: flex-start;\n  padding: 18px 10px;\n  background: transparent !important;\n}\n\n#pfb * {\n  box-sizing: border-box;\n}\n\n#pfb .pfb-card {\n  width: 100%;\n  max-width: 430px;\n  background: #151d2d;\n  border: 1px solid rgba(255,255,255,0.08);\n  border-radius: 28px;\n  overflow: hidden;\n  color: #e2e8f0;\n  box-shadow: 0 26px 70px rgba(0,0,0,0.56);\n}\n\n#pfb .pfb-head {\n  background: linear-gradient(135deg, #2563eb, #8b5cf6);\n  text-align: center;\n  padding: 24px 20px 22px;\n}\n\n#pfb .pfb-title {\n  font-size: 13px;\n  font-weight: 800;\n  letter-spacing: 4px;\n  color: white;\n}\n\n#pfb .pfb-subtitle {\n  margin-top: 8px;\n  font-size: 11px;\n  font-weight: 600;\n  color: rgba(255,255,255,0.72);\n}\n\n#pfb .pfb-body {\n  padding: 21px 22px 22px;\n}\n\n#pfb .pfb-section {\n  display: flex;\n  align-items: center;\n  gap: 9px;\n  margin-bottom: 16px;\n}\n\n#pfb .pfb-section-2 {\n  margin-top: 19px;\n}\n\n#pfb .pfb-section::before,\n#pfb .pfb-section::after {\n  content: \"\";\n  height: 1px;\n  flex: 1;\n  background: rgba(255,255,255,0.09);\n}\n\n#pfb .pfb-section span {\n  color: #3b82f6;\n  font-size: 9px;\n  font-weight: 800;\n  letter-spacing: 2px;\n  text-transform: uppercase;\n  white-space: nowrap;\n}\n\n#pfb .pfb-grid {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 12px;\n}\n\n#pfb .pfb-field {\n  margin-bottom: 13px;\n}\n\n#pfb label {\n  display: block;\n  margin-bottom: 7px;\n  font-size: 9px;\n  font-weight: 800;\n  letter-spacing: 1.8px;\n  text-transform: uppercase;\n  color: #94a3b8;\n}\n\n#pfb label b {\n  color: #f87171;\n}\n\n#pfb input[type=\"text\"],\n#pfb input[type=\"tel\"],\n#pfb input[type=\"email\"],\n#pfb select {\n  width: 100%;\n  border: 1.5px solid transparent;\n  outline: none;\n  border-radius: 13px;\n  background: #eaf1ff;\n  color: #0f172a;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  padding: 13px 14px;\n  transition: border-color .18s, box-shadow .18s, transform .18s;\n}\n\n#pfb input:focus,\n#pfb select:focus {\n  border-color: #3b82f6;\n  box-shadow: 0 0 0 3px rgba(59,130,246,0.22);\n}\n\n#pfb select {\n  appearance: none;\n  -webkit-appearance: none;\n  cursor: pointer;\n  background-image:\n    linear-gradient(45deg, transparent 50%, #64748b 50%),\n    linear-gradient(135deg, #64748b 50%, transparent 50%);\n  background-position:\n    calc(100% - 18px) 52%,\n    calc(100% - 12px) 52%;\n  background-size: 6px 6px, 6px 6px;\n  background-repeat: no-repeat;\n  padding-right: 34px;\n}\n\n#pfb .pfb-color-card {\n  background: #0f1623;\n  border: 1px solid rgba(255,255,255,0.08);\n  border-radius: 16px;\n  padding: 13px;\n  margin-bottom: 13px;\n}\n\n#pfb .pfb-color-row {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n\n#pfb input[type=\"color\"] {\n  width: 50px;\n  height: 50px;\n  padding: 0;\n  background: transparent;\n  border: 0;\n  cursor: pointer;\n  flex-shrink: 0;\n}\n\n#pfb .pfb-color-preview {\n  width: 50px;\n  height: 50px;\n  border-radius: 14px;\n  border: 1.5px solid rgba(255,255,255,0.14);\n  flex-shrink: 0;\n}\n\n#pfb .pfb-color-info span {\n  display: block;\n  color: #94a3b8;\n  font-size: 10px;\n  font-weight: 700;\n}\n\n#pfb .pfb-color-info strong {\n  display: block;\n  margin-top: 3px;\n  color: #e2e8f0;\n  font-family: monospace;\n  font-size: 14px;\n  font-weight: 800;\n}\n\n#pfb .pfb-qty {\n  display: flex;\n  align-items: center;\n  height: 48px;\n  background: #0f1623;\n  border: 1.5px solid rgba(255,255,255,0.08);\n  border-radius: 13px;\n  overflow: hidden;\n}\n\n#pfb .pfb-qty button {\n  width: 44px;\n  height: 48px;\n  border: 0;\n  background: transparent;\n  color: #94a3b8;\n  font-size: 22px;\n  cursor: pointer;\n}\n\n#pfb .pfb-qty button:hover {\n  color: #3b82f6;\n  background: rgba(59,130,246,0.13);\n}\n\n#pfb .pfb-qty span {\n  flex: 1;\n  text-align: center;\n  color: #fff;\n  font-size: 17px;\n  font-weight: 800;\n}\n\n#pfb .pfb-status {\n  min-height: 18px;\n  margin: 1px 0 9px;\n  text-align: right;\n  font-size: 11px;\n  font-weight: 700;\n}\n\n#pfb .pfb-status.ok {\n  color: #10b981;\n}\n\n#pfb .pfb-status.err {\n  color: #f87171;\n}\n\n#pfb .pfb-submit {\n  width: 100%;\n  height: 58px;\n  border: 0;\n  border-radius: 999px;\n  background: linear-gradient(135deg, #10b981, #059669);\n  color: white;\n  font-family: inherit;\n  font-size: 13px;\n  font-weight: 800;\n  letter-spacing: 3px;\n  cursor: pointer;\n  box-shadow: 0 8px 28px rgba(16,185,129,0.34);\n  transition: transform .18s, box-shadow .18s;\n}\n\n#pfb .pfb-submit:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 14px 38px rgba(16,185,129,0.45);\n}\n\n#pfb .pfb-submit span {\n  font-size: 20px;\n  vertical-align: -2px;\n  margin-right: 8px;\n}\n\n#pfb .pfb-submit.is-waiting {\n  opacity: 0.72;\n  cursor: not-allowed;\n  background: linear-gradient(135deg, #64748b, #334155);\n  box-shadow: none;\n}\n\n#pfb .pfb-submit.is-waiting:hover {\n  transform: none;\n  box-shadow: none;\n}\n\n#pfb .pfb-submit.is-waiting #pfb-submit-icon {\n  display: inline-block;\n  animation: pfbSpin 1s linear infinite;\n}\n\n@keyframes pfbSpin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n/* Responsive tablet */\n@media (max-width: 700px) {\n  #pfb {\n    padding: 12px 8px;\n  }\n\n  #pfb .pfb-card {\n    max-width: 100%;\n    border-radius: 24px;\n  }\n\n  #pfb .pfb-head {\n    padding: 22px 18px 20px;\n  }\n\n  #pfb .pfb-body {\n    padding: 19px 20px 21px;\n  }\n}\n\n/* Responsive móvil */\n@media (max-width: 480px) {\n  #pfb {\n    padding: 8px 6px;\n  }\n\n  #pfb .pfb-card {\n    max-width: 100%;\n    border-radius: 20px;\n  }\n\n  #pfb .pfb-head {\n    padding: 20px 14px 18px;\n  }\n\n  #pfb .pfb-title {\n    font-size: 12px;\n    letter-spacing: 3px;\n  }\n\n  #pfb .pfb-subtitle {\n    font-size: 10px;\n  }\n\n  #pfb .pfb-body {\n    padding: 17px 16px 18px;\n  }\n\n  #pfb .pfb-grid {\n    grid-template-columns: 1fr;\n    gap: 0;\n  }\n\n  #pfb .pfb-section span {\n    font-size: 8px;\n    letter-spacing: 1.6px;\n  }\n\n  #pfb input[type=\"text\"],\n  #pfb input[type=\"tel\"],\n  #pfb input[type=\"email\"],\n  #pfb select {\n    font-size: 13px;\n    padding: 12px;\n  }\n\n  #pfb .pfb-color-row {\n    gap: 10px;\n  }\n\n  #pfb input[type=\"color\"],\n  #pfb .pfb-color-preview {\n    width: 44px;\n    height: 44px;\n  }\n\n  #pfb .pfb-submit {\n    height: 54px;\n    font-size: 12px;\n    letter-spacing: 2px;\n  }\n}\n\n/* Móvil muy estrecho */\n@media (max-width: 360px) {\n  #pfb .pfb-body {\n    padding: 15px 13px 16px;\n  }\n\n  #pfb .pfb-title {\n    letter-spacing: 2.4px;\n  }\n\n  #pfb .pfb-submit span {\n    margin-right: 4px;\n  }\n}\n</style>\n\n<script>\n(function(scope) {\n  var qty = 1;\n  var pfbBloqueado = false;\n  var pfbTiempoEspera = 5;\n  var pfbInterval = null;\n\n  window.pfbUpdateColor = function() {\n    var c = (document.getElementById('pfb-color') || {}).value || '3b82f6';\n    var p = document.getElementById('pfb-color-preview');\n    var h = document.getElementById('pfb-color-hex');\n\n    if (p) p.style.background = c;\n    if (h) h.textContent = c;\n  };\n\n  window.pfbChangeQty = function(d) {\n    qty = Math.max(1, Math.min(10, qty + d));\n    var el = document.getElementById('pfb-qty-val');\n    if (el) el.textContent = qty;\n  };\n\n  function pfbIniciarBloqueo() {\n    var btn = document.getElementById('pfb-submit-btn');\n    var icon = document.getElementById('pfb-submit-icon');\n    var text = document.getElementById('pfb-submit-text');\n\n    pfbBloqueado = true;\n    var segundos = pfbTiempoEspera;\n\n    if (btn) {\n      btn.disabled = false;\n      btn.classList.add('is-waiting');\n    }\n\n    if (icon) icon.textContent = '⟳';\n    if (text) text.textContent = 'ESPERA ' + segundos + 's';\n\n    pfbInterval = setInterval(function() {\n      segundos--;\n\n      if (text) text.textContent = 'ESPERA ' + segundos + 's';\n\n      if (segundos <= 0) {\n        clearInterval(pfbInterval);\n        pfbInterval = null;\n        pfbBloqueado = false;\n\n        if (btn) {\n          btn.disabled = false;\n          btn.classList.remove('is-waiting');\n        }\n\n        if (icon) icon.textContent = '➤';\n        if (text) text.textContent = 'ENVIAR PEDIDO';\n      }\n    }, 1000);\n  }\n\n  window.pfbEnviar = function() {\n    var nombre = ((document.getElementById('pfb-nombre') || {}).value || '').trim();\n    var tamano = ((document.getElementById('pfb-tamano') || {}).value || '').trim();\n    var tipo = ((document.getElementById('pfb-tipo') || {}).value || '').trim();\n    var s = document.getElementById('pfb-status');\n\n    if (pfbBloqueado) {\n      if (s) {\n        s.textContent = 'Espera unos segundos antes de enviar otro pedido';\n        s.className = 'pfb-status err';\n      }\n      return;\n    }\n\n    if (!nombre) {\n      if (s) {\n        s.textContent = 'El nombre es obligatorio';\n        s.className = 'pfb-status err';\n      }\n      return;\n    }\n\n    if (!tamano) {\n      if (s) {\n        s.textContent = 'El tamaño es obligatorio';\n        s.className = 'pfb-status err';\n      }\n      return;\n    }\n\n    if (!tipo) {\n      if (s) {\n        s.textContent = 'El tipo es obligatorio';\n        s.className = 'pfb-status err';\n      }\n      return;\n    }\n\n    var payload = {\n      cliente_nombre: nombre,\n      cliente_telefono: ((document.getElementById('pfb-tel') || {}).value || '').trim(),\n      cliente_email: ((document.getElementById('pfb-email') || {}).value || '').trim(),\n      color_elegido: ((document.getElementById('pfb-color') || {}).value || 'ffffff').replace(\"#\", \"\"),\n      cantidad_elegida: qty,\n      tamano_elegido: tamano,\n      tipo_elegido: tipo\n    };\n\n    try {\n      scope.send({ payload: payload });\n\n      if (s) {\n        s.textContent = '✓ Pedido enviado';\n        s.className = 'pfb-status ok';\n      }\n\n      pfbIniciarBloqueo();\n\n    } catch(e) {\n      console.error('Error enviando pedido:', e);\n\n      if (s) {\n        s.textContent = 'Error enviando pedido';\n        s.className = 'pfb-status err';\n      }\n    }\n  };\n\n  setTimeout(function() {\n    window.pfbUpdateColor();\n  }, 100);\n})(scope);\n</script>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 630,
+        "y": 200,
+        "wires": [
+            [
+                "fn_set_flow_y_trigger"
+            ]
+        ]
+    },
+    {
+        "id": "fn_set_flow_y_trigger",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "Guardar datos y crear pedido",
+        "func": "const p = msg.payload || {};\n\nflow.set(\"cliente_nombre\", p.cliente_nombre || \"\");\nflow.set(\"cliente_telefono\", p.cliente_telefono || \"\");\nflow.set(\"cliente_email\", p.cliente_email || \"\");\nflow.set(\"cliente_observaciones\", p.cliente_observaciones || \"\");\nflow.set(\"color_elegido\", p.color_elegido || \"#ffffff\");\nflow.set(\"cantidad_elegida\", Number(p.cantidad_elegida || 1));\nflow.set(\"tamano_elegido\", p.tamano_elegido || \"\");\nflow.set(\"tipo_elegido\", p.tipo_elegido || \"\");\n\n// Salida pedido completo para MongoDB\nconst mongoMsg = {\n    payload: {\n        numero_pedido: \"PED-\" + Date.now(),\n\n        cliente: {\n            nombre:   p.cliente_nombre   || \"Sin nombre\",\n            telefono: p.cliente_telefono || \"\",\n            email:    p.cliente_email    || \"\"\n        },\n\n        pedido: {\n            producto: \"Pintura personalizada\",\n            color:    p.color_elegido    || \"Sin color\",\n            cantidad: Number(p.cantidad_elegida || 1),\n            tamano:   p.tamano_elegido   || \"Sin tamaño\",\n            tipo:     p.tipo_elegido     || \"Sin tipo\"\n        },\n\n        estado: \"pendiente\",\n\n        fechas: {\n            fecha_pedido:     new Date(),\n            fecha_produccion: null,\n            fecha_finalizado: null\n        },\n\n        observaciones: p.cliente_observaciones || \"Pedido enviado desde la app\"\n    }\n};\n\n// Salida payload para MQTT\nconst mqttMsg = {\n    payload: {\n        numero_pedido: \"PED-\" + Date.now(),\n        rgb_hex:  p.color_elegido || \"ffffff\",\n        tamano:   p.tamano_elegido || \"M\",\n        cantidad: Number(p.cantidad_elegida || 1),\n        tipo:     p.tipo_elegido || \"Ext\"\n    }\n};\n\n// Salida 3: debug del formulario\nconst debugMsg = { payload: p };\n\nreturn [mongoMsg, mqttMsg, debugMsg];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 200,
+        "wires": [
+            [
+                "mongo_out_pintura_bonita_test"
+            ],
+            [
+                "mqtt_out_pintura_bonita_test"
+            ],
+            [
+                "debug_formulario_bonito_test"
+            ]
+        ]
+    },
+    {
+        "id": "mongo_out_pintura_bonita_test",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "MongoDB local PR2",
+        "collection": "proyecto",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1200,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "mqtt_out_pintura_bonita_test",
+        "type": "mqtt out",
+        "z": "tab_pintura_bonita_test",
+        "name": "MQTT ESP32",
+        "topic": "emqx/ESP32_R/sub",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "x": 1180,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "debug_formulario_bonito_test",
+        "type": "debug",
+        "z": "tab_pintura_bonita_test",
+        "name": "debug formulario",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1190,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "b23e71c8a425f1b0",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/pub/finalizado_per",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 700,
+        "y": 380,
+        "wires": [
+            [
+                "a747deb6409011c1"
+            ]
+        ]
+    },
+    {
+        "id": "a747deb6409011c1",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "actualizar estado y fecha finalizado",
+        "func": "const p = msg.payload || {};\n\nif (!p.numero_pedido) {\n    node.error(\"No se proporcionó un número_pedido para actualizar.\");\n    return null; \n}\n\n\nconst mongoMsg = {\n    // 1. La condición de búsqueda SIEMPRE va en msg.query\n    query: { \n        numero_pedido: p.numero_pedido \n    },\n    \n    // 2. Los datos a actualizar SIEMPRE van en msg.payload\n    payload: { \n        $set: { \n            estado: \"finalizado\",\n            \"fechas.fecha_finalizado\": new Date() \n        } \n    }\n};\nreturn mongoMsg;\n\n/*\ndb.proyecto.updateOne(\n    { numero_pedido: p.numero_pedido }, \n    { $set: { estado: \"finalizado\", \"fechas.fecha_finalizado\": new Date() } }\n)\n*/",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1080,
+        "y": 380,
+        "wires": [
+            [
+                "e27d1bd64a60334e"
+            ]
+        ]
+    },
+    {
+        "id": "e27d1bd64a60334e",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Actualizar fechas y estado",
+        "collection": "proyecto",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "update",
+        "x": 1370,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "d3adb14a773727f8",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/pub/prod_per",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 680,
+        "y": 460,
+        "wires": [
+            [
+                "f82d7533290bbc75"
+            ]
+        ]
+    },
+    {
+        "id": "f82d7533290bbc75",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "actualizar fecha y estado de produccion",
+        "func": "const p = msg.payload || {};\n\nif (!p.numero_pedido) {\n    node.error(\"No se proporcionó un número_pedido para pasar a producción.\");\n    return null; \n}\n\nconst mongoMsg = {\n    \n    query: {\n        numero_pedido: p.numero_pedido\n    },\n    \n      \n    payload: { \n        $set: { \n            estado: \"en_produccion\",\n            \"fechas.fecha_produccion\": new Date() \n        } \n    }\n       \n      \n};\nreturn mongoMsg;\n\n/*\ndb.proyecto.updateOne(\n    { numero_pedido: p.numero_pedido }, \n    { $set: { estado: \"produccion\", \"fechas.fecha_produccion\": new Date() } }\n)\n*/",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 460,
+        "wires": [
+            [
+                "17b0fc7ad779384f"
+            ]
+        ]
+    },
+    {
+        "id": "17b0fc7ad779384f",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Actualizar fechas y estado",
+        "collection": "proyecto",
+        "payonly": false,
+        "upsert": false,
+        "multi": false,
+        "operation": "update",
+        "x": 1350,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "35b2345bd9e8989f",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/pub/avisos/tapas_per",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 710,
+        "y": 540,
+        "wires": [
+            [
+                "9dea5715bb939aef"
+            ]
+        ]
+    },
+    {
+        "id": "9dea5715bb939aef",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "Avisos tapas",
+        "func": "const p = msg.payload || {};\n\nconst mongoMsg = {\n    payload: {\n        \n        aviso:   \"Hay que reponer las tapas!\",\n        num_avisos: p.num_avisos,\n        date: new Date()\n\n    }\n\n};\nreturn mongoMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 540,
+        "wires": [
+            [
+                "5ff82e6d8f8b01ff"
+            ]
+        ]
+    },
+    {
+        "id": "5ff82e6d8f8b01ff",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Avisos tapas MongoDB",
+        "collection": "aviso_tapas",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1230,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "15767d7b71143712",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/pub/avisos/palet_per",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 710,
+        "y": 620,
+        "wires": [
+            [
+                "bf1d15e2f5e3d638"
+            ]
+        ]
+    },
+    {
+        "id": "bf1d15e2f5e3d638",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "Avisos Palet",
+        "func": "const p = msg.payload || {};\n\nconst mongoMsg = {\n\n    payload: {\n    \n            aviso:   \"Hay que retirar el palet de la linea \" + p.linea,\n            linea: p.linea,\n            num_avisos:   p.num_avisos,\n            date: new Date()\n        \n            \n    }\n\n    \n};\nreturn mongoMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 620,
+        "wires": [
+            [
+                "824dba347f6a8112"
+            ]
+        ]
+    },
+    {
+        "id": "824dba347f6a8112",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Avisos palet MongoDB",
+        "collection": "aviso_palet",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1220,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "9610765eba2e1583",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/pub/avisos/rgb_per",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 700,
+        "y": 680,
+        "wires": [
+            [
+                "f48fc1dcf0e88f31"
+            ]
+        ]
+    },
+    {
+        "id": "f48fc1dcf0e88f31",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "Avisos RGB",
+        "func": "const p = msg.payload || {};\n\nconst mongoMsg = {\n\n    payload: {\n    \n            aviso:   \"Hay que rellenar el dispensador \" + p.color_agotado + \" de la linea \" + p.linea,\n            color: p.color_agotado,\n            linea: p.linea,\n            num_avisos:   p.num_avisos,\n            date: new Date()\n\n    }\n            \n};\nreturn mongoMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 680,
+        "wires": [
+            [
+                "566f480a3cdc4dc4"
+            ]
+        ]
+    },
+    {
+        "id": "566f480a3cdc4dc4",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Avisos RGB MongoDB",
+        "collection": "aviso_rgb",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1220,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "5c6cb4e53dc2d8c0",
+        "type": "mqtt in",
+        "z": "tab_pintura_bonita_test",
+        "name": "",
+        "topic": "emqx/ESP32_R/arduino/button",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "mqtt_cfg_pintura_bonita_test",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 690,
+        "y": 740,
+        "wires": [
+            [
+                "4ee323d1301ad508"
+            ]
+        ]
+    },
+    {
+        "id": "4ee323d1301ad508",
+        "type": "function",
+        "z": "tab_pintura_bonita_test",
+        "name": "Avisos seta",
+        "func": "const p = msg.payload || {};\n\nlet mensaje = \"Se ha ACTIVADO la seta de emergencia\";\n\nif (String(p.estado).toUpperCase() === \"CONTINUE\") {\n    mensaje = \"Se ha DESACTIVADO la seta de emergencia\";\n}\n\nconst mongoMsg = {\n    payload: {\n        aviso: mensaje,\n        estado: p.estado,\n        num_avisos: p.num_avisos,\n        date: new Date()\n    }\n};\n\nreturn mongoMsg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 740,
+        "wires": [
+            [
+                "fd626c99ecebd068"
+            ]
+        ]
+    },
+    {
+        "id": "fd626c99ecebd068",
+        "type": "mongodb out",
+        "z": "tab_pintura_bonita_test",
+        "mongodb": "mongo_cfg_pintura_bonita_test",
+        "name": "Avisos seta MongoDB",
+        "collection": "aviso_emergencia",
+        "payonly": true,
+        "upsert": false,
+        "multi": false,
+        "operation": "insert",
+        "x": 1220,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "ui_group_pintura_bonita_test",
+        "type": "ui_group",
+        "name": "PEDIDO PINTURA",
+        "tab": "ui_tab_pintura_bonita_test",
+        "order": 1,
+        "disp": false,
+        "width": "8",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "mongo_cfg_pintura_bonita_test",
+        "type": "mongodb",
+        "hostname": "127.0.0.1",
+        "topology": "direct",
+        "connectOptions": "",
+        "port": 27017,
+        "db": "PR2",
+        "name": "mongoLocal PR2 Form"
+    },
+    {
+        "id": "mqtt_cfg_pintura_bonita_test",
+        "type": "mqtt-broker",
+        "name": "broker.emqx.io Form ",
+        "broker": "broker.emqx.io",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ui_tab_pintura_bonita_test",
+        "type": "ui_tab",
+        "name": "Pintura Bonita TEST",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "b0f717a2262b4908",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6",
+            "node-red-node-mongodb": "0.2.5"
+        }
+    }
+]
