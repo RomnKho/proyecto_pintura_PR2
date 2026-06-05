@@ -796,6 +796,8 @@ def poner_agitadores_int():
             continue
 
         agi.meter_bote(bote_con_tapa, bote_con_tapa.tipo, agitador)
+        init.reanudar_cinta_int("AGI_INT", "int")
+
         segundos = random.randint(6, 15)
         init.cola_proceso_agitador_int.put((bote_con_tapa, agitador, segundos))
         print(f"[AGI INT] Bote {bote_con_tapa.id_bote} en {agitador} durante {segundos}s")
@@ -821,6 +823,8 @@ def poner_agitadores_ext():
             continue
 
         agi.meter_bote(bote_con_tapa, bote_con_tapa.tipo, agitador)
+        init.reanudar_cinta_ext("AGI_EXT", "ext")
+
         segundos = random.randint(6, 15)
         init.cola_proceso_agitador_ext.put((bote_con_tapa, agitador, segundos))
         print(f"[AGI EXT] Bote {bote_con_tapa.id_bote} en {agitador} durante {segundos}s")
@@ -832,7 +836,6 @@ def esperar_agitacion_int():
             bote_con_tapa, agitador, segundos = init.cola_proceso_agitador_int.get(timeout=0.2)
         except Empty:
             continue
-        init.reanudar_cinta_int("AGI_INT", "int")
         time.sleep(segundos)
         init.cola_salida_agitador_int.put((bote_con_tapa, agitador))
         print(f"[AGI INT] Bote {bote_con_tapa.id_bote} terminado en {agitador}")
@@ -844,7 +847,6 @@ def esperar_agitacion_ext():
             bote_con_tapa, agitador, segundos = init.cola_proceso_agitador_ext.get(timeout=0.2)
         except Empty:
             continue
-        init.reanudar_cinta_ext("AGI_EXT", "ext")
         time.sleep(segundos)
         init.cola_salida_agitador_ext.put((bote_con_tapa, agitador))
         print(f"[AGI EXT] Bote {bote_con_tapa.id_bote} terminado en {agitador}")
