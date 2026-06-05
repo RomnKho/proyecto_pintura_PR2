@@ -1,75 +1,102 @@
+# mqtt_client.py
+
 import paho.mqtt.client as mqtt
 import time
 
-# Configuración por defecto (puedes cambiarla directamente aquí o mediante parámetros)
-BROKER = "broker.emqx.io"   # broker público
-BROKER_DSIC = "mqtt.dsic.upv.es"
+
+BROKER = "broker.emqx.io"
 PORT = 1883
-USERNAME_DSIC = "giirob"
-PASSWORD_DSIC = "UPV2024"
+
+USERNAME = "giirob"
+PASSWORD = "UPV2024"
+
 
 class MQTTManager:
     """
-    Gestor centralizado de la conexión MQTT.
-    Proporciona publicación, suscripción y gestión del bucle no bloqueante.
+    Gestor centralizado de MQTT.
+    Sirve para conectar, publicar y suscribirse de forma sencilla.
     """
+
     def __init__(self, broker=BROKER, port=PORT, username=None, password=None):
         self.broker = broker
         self.port = port
         self.username = username
         self.password = password
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+
+        # Compatible con versiones nuevas y antiguas de paho-mqtt
+        try:
+            self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        except Exception:
+            self.client = mqtt.Client()
+
         self.connected = False
 
-        # Configurar autenticación si se proporcionó
-        if self.username and self.password:
+        self.client.on_connect = self._on_connect
+        self.client.on_disconnect = self._on_disconnect
+
+        if self.username is not None and self.password is not None:
             self.client.username_pw_set(self.username, self.password)
 
+    def _on_connect(self, client, userdata, flags, reason_code, properties=None):
+        self.connected = True
+        print(f"[MQTT] Conectado al broker {self.broker}:{self.port}")
+
+    def _on_disconnect(self, client, userdata, disconnect_flags=None, reason_code=None, properties=None):
+        self.connected = False
+        print("[MQTT] Desconectado del broker")
+
     def connect(self):
-        """Establece la conexión con el broker y arranca el bucle en segundo plano."""
         try:
-            self.client.connect(self.broker, self.port, 60)
-            self.connected = True
-            print(f"[MQTT] Conectado a {self.broker}:{self.port}")
+            self.client.connect(self.broker, self.port, keepalive=60)
+            self.client.loop_start()
+
+            # Espera corta hasta conectar
+            timeout = time.time() + 5
+            while not self.connected and time.time() < timeout:
+                time.sleep(0.1)
+
+            return self.connected
+
         except Exception as e:
-            print(f"[MQTT] Error de conexión: {e}")
-            self.connected = False
+            print(f"[MQTT] Error al conectar: {e}")
+            return False
 
-    def publish(self, topic, message):
-        """Publica un mensaje en el topic especificado."""
-        if not self.connected:
-            print("[MQTT] No conectado, no se puede publicar.")
-            return
-        self.client.publish(topic, message)
+    def subscribe(self, topic, callback, qos=0):
+        try:
+            self.client.message_callback_add(topic, callback)
+            self.client.subscribe(topic, qos=qos)
+            print(f"[MQTT] Suscrito a {topic}")
+            return True
 
-    def subscribe(self, topic, on_message):
-        """
-        Suscribe un callback específico para un topic.
-        El callback debe recibir (client, userdata, msg).
-        """
-        if not self.connected:
-            print("[MQTT] No conectado, no se puede suscribir.")
-            return
-        self.client.message_callback_add(topic, on_message)
-        self.client.subscribe(topic)
-        print(f"[MQTT] Suscrito a {topic}")
+        except Exception as e:
+            print(f"[MQTT] Error al suscribirse a {topic}: {e}")
+            return False
 
-    def set_default_callback(self, on_message):
-        """Establece el callback por defecto para todos los mensajes."""
-        self.client.on_message = on_message
-    def start(self):
-        """Inicia el bucle de MQTT en segundo plano."""
-        if not self.connected:
-            print("[MQTT] No conectado, no se puede iniciar el bucle.")
-            return
-        self.client.loop_start()
-        print("[MQTT] Bucle iniciado")
+    def publish(self, topic, payload, qos=0, retain=False):
+        try:
+            self.client.publish(topic, payload, qos=qos, retain=retain)
+            print(f"[MQTT] Publicado en {topic}: {payload}")
+            return True
 
-# Crear una instancia global única con la configuración deseada
+        except Exception as e:
+            print(f"[MQTT] Error al publicar en {topic}: {e}")
+            return False
+
+    def disconnect(self):
+        try:
+            self.client.loop_stop()
+            self.client.disconnect()
+        except Exception as e:
+            print(f"[MQTT] Error al desconectar: {e}")
+
+
+# Instancia global única
 manager = MQTTManager(
     broker=BROKER,
     port=PORT,
-    username=None,   # descomenta si usas autenticación
-    password=None    # username=None, password=None
+    username=None,
+    password=None
 )
 
+# Conectar automáticamente al importar
+manager.connect()
