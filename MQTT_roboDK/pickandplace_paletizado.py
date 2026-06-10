@@ -1,4 +1,4 @@
-Type help("robodk.robolink") or help("robodk.robomath") for more information
+# Type help("robodk.robolink") or help("robodk.robomath") for more information
 # Press F5 to run the script
 # Documentation: https://robodk.com/doc/en/RoboDK-API.html
 # Reference:     https://robodk.com/doc/en/PythonAPI/robodk.html
@@ -27,8 +27,8 @@ robot_pal = RDK.Item("[PALETIZAR]Yaskawa_Motoman_G10", robolink.ITEM_TYPE_ROBOT)
 herramienta_pal = RDK.Item("[PALETIZAR]Ventosas_Paletizador", robolink.ITEM_TYPE_TOOL)
 
 TAM_BOTES = {
-    "0.5L": (95 + 15, 100 + 15), # Tamaño mas un pequeño margen
-    "2L": (135 + 15, 135 + 15),
+    "0.5L": (95 + 5, 100 + 5), # Tamaño mas un pequeño margen
+    "2L": (135 + 10, 135 + 10),
     "5L": (195 + 15, 195 + 15),
 }
 

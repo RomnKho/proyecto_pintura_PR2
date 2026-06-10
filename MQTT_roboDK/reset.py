@@ -15,7 +15,7 @@ RDK = robolink.Robolink()
 def reset():
 
     init.running = False
-    time.sleep(1) # Esperamos a que los hilos terminen su ejecución
+    time.sleep(3) # Esperamos a que los hilos terminen su ejecución
 
     init.reset_init()
 
